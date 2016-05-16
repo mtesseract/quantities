@@ -22,6 +22,7 @@ import           Formatting
 import           Numeric (readFloat, readSigned)
 import           Quantities.Types
 import           Quantities.Units
+import           Quantities.Util
 import           Text.Read
 
 -------------
@@ -81,13 +82,6 @@ parseNumber s' =
   let s = T.strip s'
   in eitherAlternative "Failed to parse number"
        [parseDecimal s, parseMixed s]
-
--- | Return first Right value in the list. If the list contains to
--- Right, return default Left.
-eitherAlternative :: a -> [Either a b] -> Either a b
-eitherAlternative def []             = Left def
-eitherAlternative _   (Right x : _)  = Right x
-eitherAlternative def (Left _  : xs) = eitherAlternative def xs
 
 -- | Parse a given quantity in its string representation, e.g. a
 -- string of the form "0.7 l".
