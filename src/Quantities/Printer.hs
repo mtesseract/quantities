@@ -10,6 +10,7 @@ module Quantities.Printer
        , printMixed
        , printFloat
        , printRational
+       , printNumber
        ) where
 
 import           Control.Lens
@@ -69,6 +70,23 @@ printMixed x' =
                (if T.null prefix || T.null fraction then "" else " ")
                -- And finally the fraction:
                fraction
+
+-- | This is the list of denomitors we prefer, when possible. e.g.,
+-- during printing Rationals or when trying to clever approximate
+-- quantities.
+goodDenominators :: [Integer]
+goodDenominators = [2, 3, 4]
+
+-- | Convert a rational number into a convenient string
+-- representation: If the denominator is contained in a list of "good"
+-- denominators then display the number as a mixed number, otherwise
+-- display it as a real number.
+printNumber :: Rational -> Text
+printNumber x =
+  let denom = abs (denominator x)
+  in if denom `elem` goodDenominators
+     then printMixed x
+     else format float x
 
 -- | Pretty print a Quantity.
 printQuantity :: (Rational -> Text) -> Quantity -> Text
