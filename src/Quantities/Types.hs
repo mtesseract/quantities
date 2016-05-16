@@ -23,6 +23,12 @@ module Quantities.Types
        , aliases
        , number
        , unit
+       , HasName
+       , HasBase
+       , HasConversion
+       , HasAliases
+       , HasNumber
+       , HasUnit
        ) where
 
 import Control.Lens (makeFields)
