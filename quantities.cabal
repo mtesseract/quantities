@@ -1,0 +1,48 @@
+name:                quantities
+version:             0.0.2.0
+synopsis:            Handling and Conversion of Quantities
+description:         Please see README.md
+homepage:            http://github.com/mtesseract/quantities#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Moritz Schulte
+maintainer:          mtesseract@silverratio.net
+copyright:           Moritz Schulte
+category:            value
+build-type:          Simple
+cabal-version:       >=1.10
+
+Library
+  hs-source-dirs:    src
+  default-language:    Haskell2010
+  ghc-options:        -Wall
+  build-depends:	base >= 4.7 && < 5
+                      , containers >= 0.5.6.2
+                      , formatting >= 6.2.2
+                      , lens >= 4.13 && < 5
+                      , split
+                      , text
+                      , utf8-string
+  Exposed-modules:      Quantities
+                      , Quantities.Types
+                      , Quantities.Parser
+                      , Quantities.Units
+                      , Quantities.Printer
+                      , Quantities.Util
+                      , Quantities.Rounding
+
+Test-Suite tests
+  default-language:    Haskell2010
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      tests/
+  main-is:             Main.hs
+  build-depends:       HUnit
+                     , quantities
+                     , QuickCheck >= 2.8.1
+                     , base >= 4.7 && < 5
+                     , test-framework >= 0.8.1.1
+                     , test-framework-hunit
+                     , test-framework-quickcheck2
+                     , text
+  ghc-options:         -Wall
+  cpp-options:  -DTEST
