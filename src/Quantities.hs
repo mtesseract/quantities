@@ -15,23 +15,20 @@ module Quantities
        , lookupUnitsByBase
        , parseNumber
        , parseQuantity
-       , roundQuantity
-       , approximateQuantity
        , printQuantity
        , computeScalingFactor
        ) where
 
-import           Control.Lens
-import           Control.Monad (when)
-import           Data.Either
-import           Data.Text.Lazy (Text)
-import           Quantities.Parser
-import           Quantities.Printer
-import           Quantities.Rounding
-import           Quantities.Types
-import           Quantities.Units
+import Control.Lens
+import Control.Monad (when)
+import Data.Either (rights)
+import Data.Text.Lazy (Text)
+import Quantities.Parser
+import Quantities.Printer
+import Quantities.Types
+import Quantities.Units
 
--- | Given a Quantity, Compute the list of "equivalent Quantities".
+-- | Given a Quantity, express that quantity with different units.
 equivalentQuantities :: Quantity -> [Quantity]
 equivalentQuantities q =
   case lookupBaseUnit (q^.unit) of
@@ -54,7 +51,10 @@ convertQuantity q toUnit = do
   return (q & number //~ factor
             & unit .~ toUnit)
 
--- quantity1 * computeScalingFactor' = quantity2
+-- | Compute the scaling factor c such that
+--
+--   quantity1 * c = quantity2
+--
 computeScalingFactor :: Quantity -> Quantity -> Either Text Rational
 computeScalingFactor q1 q2 = do
   when (q1^.number == 0) $ Left "Quantity is zero."

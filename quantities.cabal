@@ -29,7 +29,6 @@ Library
                       , Quantities.Units
                       , Quantities.Printer
                       , Quantities.Util
-                      , Quantities.Rounding
 
 Test-Suite tests
   default-language:    Haskell2010

@@ -20,13 +20,12 @@ module Quantities.Types
        , name
        , base
        , conversion
-       , digits
        , aliases
        , number
        , unit
        ) where
 
-import Control.Lens
+import Control.Lens (makeFields)
 import Data.Text.Lazy (Text)
 
 ---------------
@@ -53,15 +52,12 @@ data UnitSpec = UnitSpec
   { unitSpecName       :: Text     -- Abbreviation of this unit.
   , unitSpecBase       :: Unit     -- The unit in which terms this unit is defined.
   , unitSpecConversion :: Rational -- Conversion factor from this unit to the base unit.
-  , unitSpecDigits     :: Int      -- Number of digits after a decimal point we want.
   , unitSpecAliases    :: [Text]   -- A list of abbreviation aliases for this unit.
   } deriving (Show)
 
 makeFields ''UnitSpec
 
 -- | A Quantity is the combination of a (rational) number and a Unit.
---data Quantity  = Quantity { quantityNumber :: Rational, quantityUnit :: Unit } deriving (Show, Eq)
-
 data Quantity = Quantity {quantityNumber :: Rational, quantityUnit :: Unit} deriving (Eq, Show)
 
 makeFields ''Quantity

@@ -15,14 +15,16 @@ module Quantities.Units
        , lookupUnitSpec
        , lookupConversionFactor
        , conversionFactor
+       , stringToUnit
+       , lookupUnitName
        ) where
 
 import           Control.Lens
 import           Data.Map (Map, fromList)
 import qualified Data.Map as M
-import           Data.Maybe (mapMaybe)
+import           Data.Maybe (mapMaybe, listToMaybe, fromMaybe)
 import           Data.Text.Lazy (Text)
-import qualified Data.Text.Lazy as T
+import           Formatting hiding (base)
 import           Quantities.Types
 import           Quantities.Util
 
@@ -37,61 +39,51 @@ _units = fromList
     UnitSpec { unitSpecName       = "l"
              , unitSpecBase       = UnitL
              , unitSpecConversion = 1
-             , unitSpecDigits     = 3
              , unitSpecAliases    = [] }),
    (UnitML, -- Mililiter
     UnitSpec { unitSpecName       = "ml"
              , unitSpecBase       = UnitL
              , unitSpecConversion = 0.001
-             , unitSpecDigits     = 0
              , unitSpecAliases    = [] }),
    (UnitCup, -- Cup
     UnitSpec { unitSpecName       = "cup"
              , unitSpecBase       = UnitL
              , unitSpecConversion =  0.236588236
-             , unitSpecDigits     = 2
              , unitSpecAliases    = ["cups"] }),
    (UnitTSP, -- Teaspoon
     UnitSpec { unitSpecName       = "tsp"
              , unitSpecBase       = UnitL
              , unitSpecConversion = 0.00492892159
-             , unitSpecDigits     = 2
              , unitSpecAliases    = [] }),
    (UnitTBSP, -- Tablespoon
     UnitSpec { unitSpecName       = "tbsp"
              , unitSpecBase       = UnitL
              , unitSpecConversion = 0.0147867648
-             , unitSpecDigits     = 2
              , unitSpecAliases    = [] }),
    (UnitFLOZ, -- Fluid Ounce
     UnitSpec { unitSpecName       = "fl.oz"
              , unitSpecBase       = UnitL
              , unitSpecConversion = 0.0295735295625
-             , unitSpecDigits     = 2
              , unitSpecAliases    = [] }),
    (UnitKG, -- Kilogram
     UnitSpec { unitSpecName       = "kg"
              , unitSpecBase       = UnitKG
              , unitSpecConversion = 1
-             , unitSpecDigits     = 3
              , unitSpecAliases    = [] }),
    (UnitG, -- Gram
     UnitSpec { unitSpecName       = "g"
              , unitSpecBase       = UnitKG
              , unitSpecConversion = 0.001
-             , unitSpecDigits     = 0
              , unitSpecAliases    = [] }),
    (UnitOZ, -- Ounce
     UnitSpec { unitSpecName       = "oz"
              , unitSpecBase       = UnitKG
              , unitSpecConversion = 0.0283495
-             , unitSpecDigits     = 2
              , unitSpecAliases    = [] }),
    (UnitLB, -- Pound
     UnitSpec { unitSpecName       = "lb"
              , unitSpecBase       = UnitKG
              , unitSpecConversion = 0.45359237
-             , unitSpecDigits     = 2
              , unitSpecAliases    = [] })]
 
 -- | Given a Unit, lookup its base Unit (every Unit needs a base
@@ -99,7 +91,7 @@ _units = fromList
 lookupBaseUnit :: Unit -> Either Text Unit
 lookupBaseUnit u =
   maybeToEither errMsg (view base <$> lookupUnitSpec u)
-  where errMsg = T.concat ["Failed to lookup base unit for unit ", printUnit u]
+  where errMsg = format ("Failed to lookup base unit for unit " % text) (printUnit u)
 
 -- | Pretty printing for Units.
 printUnit :: Unit -> Text
@@ -124,7 +116,8 @@ lookupUnitSpec = flip M.lookup _units
 lookupConversionFactor :: Unit -> Either Text Rational
 lookupConversionFactor u =
   maybeToEither errMsg (view conversion <$> lookupUnitSpec u)
-  where errMsg = T.concat ["failed to lookup conversion factor for unit ", showText u]
+  where errMsg = format ("Failed to lookup conversion factor for unit " % text)
+                        (showText u)
 
 ---------------------
 -- Unit Conversion --
@@ -144,10 +137,9 @@ conversionFactor fromUnit toUnit
          then do factor1 <- lookupConversionFactor toUnit
                  factor2 <- lookupConversionFactor fromUnit
                  return $ factor1 / factor2
-         else Left $ T.concat [ "Base unit mismatch for units "
-                              , printUnit fromUnit
-                              , " and "
-                              , printUnit toUnit ]
+         else Left $ format ("Base unit mismatch for units " % text % ", " % text)
+                            (printUnit fromUnit)
+                            (printUnit toUnit)
 
 lookupUnitsByBase :: Unit -> [Unit]
 lookupUnitsByBase b =
@@ -155,3 +147,14 @@ lookupUnitsByBase b =
                         then Just u
                         else Nothing)
     (M.toList _units)
+
+-- | Convert a String into a Unit.
+stringToUnit :: Text -> Unit
+stringToUnit "" = UnitNone -- Degenerate case of a unitless Quantity,
+                           -- i.e. only a number.
+stringToUnit u = fromMaybe (UnitOther u) (lookupUnitName u)
+
+-- | Extract the unit names, forming (String Name, Unit) pairs.
+lookupUnitName :: Text -> Maybe Unit
+lookupUnitName n = listToMaybe $ _units^..ifolded.withIndex.filtered matchName._1
+  where matchName (_, s) = n `elem` (s ^. name : s ^. aliases)

@@ -11,5 +11,6 @@ maybeToEither :: a -> Maybe b -> Either a b
 maybeToEither _ (Just b) = Right b
 maybeToEither a Nothing  = Left  a
 
+-- | Return the result of `show' as a (lazy) Text.
 showText :: Show a => a -> T.Text
 showText = T.pack . show
